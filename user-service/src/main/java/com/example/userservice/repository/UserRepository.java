@@ -3,6 +3,8 @@ package com.example.userservice.repository;
 import com.example.userservice.config.CustomUserDetails;
 import com.example.userservice.entity.UserApp;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +20,7 @@ public interface UserRepository extends JpaRepository<UserApp, Long> {
     Optional<UserApp> findByCodeAndDeleted(String code, Integer deleted);
 
     CustomUserDetails findByCode(String code);
+
+    @Query(value = "select u from UserApp u where u.deleted = 1 and u.code =: userName or u.userName = :userName")
+    UserApp findByUserNameOrCode(@Param("userName") String userName);
 }

@@ -8,43 +8,29 @@ import com.example.userservice.repository.PositionRepository;
 import com.example.userservice.repository.UserRepository;
 import com.example.userservice.service.UserService;
 import com.example.userservice.utils.Constants;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.internal.engine.messageinterpolation.parser.MessageDescriptorFormatException;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Configuration
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private  UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private  PositionRepository positionRepository;
+    private final  PositionRepository positionRepository;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private Environment environment;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Transactional
     @Override
@@ -60,7 +46,6 @@ public class UserServiceImpl implements UserService {
 
         UserApp userApp = new UserApp();
         BeanUtils.copyProperties(userDTO, userApp);
-//        userApp.setPassword(Constants.PASSWORD);
         userApp.setCreatTime(new Date());
         userApp.setDeleted(Constants.DONT_DELETE);
         userApp.setStatus(Constants.STATUS_ACTIVE);

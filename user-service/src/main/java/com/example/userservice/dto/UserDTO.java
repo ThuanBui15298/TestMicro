@@ -21,6 +21,5 @@ public class UserDTO {
 
     private String passWord;
 
-    private  String token;
 
 }

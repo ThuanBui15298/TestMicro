@@ -32,8 +32,6 @@ public class AuthApi {
 
     private final AuthenticationManager authenticationManager;
 
-    private final UserService usersService;
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
@@ -50,7 +48,7 @@ public class AuthApi {
         } catch (Exception e) {
             return new ResponseEntity<>(ResponseData.builder()
                     .status(ERROR.name())
-                    .message(e.getMessage()).build(), BAD_REQUEST);
+                    .message("Code or password failes").build(), BAD_REQUEST);
         }
     }
 
