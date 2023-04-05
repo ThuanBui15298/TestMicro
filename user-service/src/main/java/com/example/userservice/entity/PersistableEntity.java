@@ -2,16 +2,18 @@ package com.example.userservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
 @MappedSuperclass
-public class PersistableEntity {
+public class PersistableEntity{
 
     @Column(name = "create_Time")
     @Temporal(TemporalType.TIMESTAMP)
@@ -34,6 +36,9 @@ public class PersistableEntity {
 
     @Column(name = "status")
     private Integer status;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime orderTime;
 
     private Integer deleted;
 

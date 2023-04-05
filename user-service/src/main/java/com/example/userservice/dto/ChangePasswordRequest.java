@@ -9,13 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponse {
-    private String accessToken;
-    private String tokenType = "Bearer";
-
-    public LoginResponse(String accessToken) {
-        this.accessToken = accessToken;
-    }
+public class ChangePasswordRequest {
+    private String userCode;
+    private String oldPassword;
+    private String newPassword;
 }
-
-

@@ -1,8 +1,7 @@
 package com.example.userservice.jwt;
 
-
 import com.example.userservice.config.CustomUserDetails;
-import com.example.userservice.service.UserService;
+import com.example.userservice.service.UsersService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,7 +24,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    private UserService usersService;
+    private UsersService usersService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
