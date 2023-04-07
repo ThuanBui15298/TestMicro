@@ -31,8 +31,6 @@ public class UsersDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 
-    private List<Long> categoryPositionId;
-
     private String username;
 
     private List<Long> rolesId;

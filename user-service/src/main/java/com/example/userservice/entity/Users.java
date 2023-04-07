@@ -45,13 +45,7 @@ public class Users extends  PersistableEntity{
 
     private Long roleId;
 
-    private  Integer deleted;
-
     private String username;
-
-    private Integer oneTimePassword;
-
-    private Date otpRequestedTime;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "roles_users",

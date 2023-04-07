@@ -6,10 +6,11 @@ import com.example.userservice.dto.LoginRequest;
 import com.example.userservice.entity.Users;
 import com.example.userservice.jwt.JwtTokenUtil;
 import com.example.userservice.response.Response;
+import com.example.userservice.response.ResponseData;
 import com.example.userservice.service.UsersService;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +20,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+
+import static org.springframework.http.HttpStatus.OK;
+import static com.example.userservice.response.ResponseDataStatus.ERROR;
+import static com.example.userservice.response.ResponseDataStatus.SUCCESS;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,27 +38,31 @@ public class AuthApi {
     private final UsersService usersService;
 
     @PostMapping("/login")
-    public ResponseEntity<Response<String>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getCode(),loginRequest.getPassword()
+                    new UsernamePasswordAuthenticationToken(loginRequest.getCode(), loginRequest.getPassword()
                     )
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
             String jwt = jwtTokenUtil.generateToken((CustomUserDetails) authentication.getPrincipal());
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", jwt, 1L));
-
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(SUCCESS.name())
+                    .message("Đăng nhập thành công")
+                    .data("Token: " + jwt).build(), OK);
         } catch (Exception e) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(),"Mã hoặc mật khẩu đăng nhập không đúng" ));
-
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(ERROR.toString())
+                    .message("Mã hoặc mật khẩu đăng nhập không đúng").build(), BAD_REQUEST);
         }
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpSession session) {
         session.invalidate();
-        return new ResponseEntity<>("Đăng xuất thành công", HttpStatus.OK);
+        return new ResponseEntity<>(ResponseData.builder()
+                .status(SUCCESS.name())
+                .message("Đăng xuất thành công").build(), OK);
     }
 
     @PostMapping("/change-password")

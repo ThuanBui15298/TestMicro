@@ -16,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,34 +32,32 @@ public class UsersServiceImpl implements UsersService {
 
     private final RolesRepository roleRepository;
 
-    private final PasswordEncoder passwordEncoder;
-
-
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Transactional
     @Override
-    public ResponseEntity<Object> createUsers(UsersDTO usersDTO) {
+    public Users createUsers(UsersDTO usersDTO) {
+
         validRequest(usersDTO);
         Optional<Users> usersOptional = usersRepository.findByCodeAndDeleted(usersDTO.getCode(), Constants.DONT_DELETE);
         if (usersOptional.isPresent() || usersDTO.getCode().length() == 0) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Mã người dùng đã tồn tại"));
+            throw  new MessageDescriptorFormatException("Mã người dùng đã tồn tại");
         }
 
         Optional<Users> usersOpt = usersRepository.findByEmailAndDeleted(usersDTO.getEmail(), Constants.DONT_DELETE);
         if (usersOpt.isPresent() || usersDTO.getEmail().length() == 0) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Email người dùng đã tồn tại"));
+            throw  new MessageDescriptorFormatException("Email người dùng đã tồn tại");
         }
 
         Optional<Users> OptUsers = usersRepository.findByPhoneAndDeleted(usersDTO.getPhone(), Constants.DONT_DELETE);
         if (OptUsers.isPresent() || usersDTO.getPhone().length() == 0) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Số điện thoại người dùng đã tồn tại"));
+            throw  new MessageDescriptorFormatException("Số điện thoại người dùng đã tồn tại");
         }
 
         if (usersDTO.getCode().length() < 5) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Số kí tự phải lớn hơn 5"));
+            throw  new MessageDescriptorFormatException("Số kí tự phải lớn hơn 5");
         }
         Users users = new Users();
         users.setName(usersDTO.getName());
@@ -76,10 +73,10 @@ public class UsersServiceImpl implements UsersService {
         users.setEmail(usersDTO.getEmail());
         usersRepository.save(users);
 
-//        for (int i = 0; i < usersDTO.getRolesId().size(); i++) {
-//            usersRepository.insert( users.getId(), usersDTO.getRolesId().get(i));
-//        }
-        return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", users, 1L));
+        for (int i = 0; i < usersDTO.getRolesId().size(); i++) {
+            usersRepository.insert( users.getId(), usersDTO.getRolesId().get(i));
+        }
+        return users;
     }
 
     @Transactional
@@ -116,9 +113,9 @@ public class UsersServiceImpl implements UsersService {
                     user.setEmail(usersDTO.getEmail());
                     usersRepository.save(user);
 
-//                    for (int i = 0; i < usersDTO.getRolesId().size(); i++) {
-//                        usersRepository.insert( user.getId(), usersDTO.getRolesId().get(i));
-//                    }
+                    for (int i = 0; i < usersDTO.getRolesId().size(); i++) {
+                        usersRepository.insert( user.getId(), usersDTO.getRolesId().get(i));
+                    }
                 } else {
                     return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Số điện thoại người dùng đã tồn tại"));
                 }
@@ -148,36 +145,13 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public Page<Map<String, Object>> searchUsers(Pageable pageable, String search, Integer status) {
-
-        if (search != null) {
-            if (status == null) {
-                status = -1;
-            }
             return usersRepository.findAllBySearch(pageable, search, status);
-        } else {
-            return usersRepository.findAllByUsers(pageable);
-        }
-    }
-
-    @Transactional
-    @Override
-    public Users resetPassWord(Long id) {
-        Optional<Users> usersOptional = usersRepository.findById(id);
-        if (usersOptional.isEmpty()) {
-            throw new MessageDescriptorFormatException("Can not found by id");
-        }
-        Users users = usersOptional.get();
-
-        users.setPassword(passwordEncoder().encode(Constants.RESET_PASSWORD));
-        usersRepository.save(users);
-        return users;
     }
 
     @Override
     public CustomUserDetails loadUserByUserCode(String code) {
         return usersRepository.findByCode(code);
     }
-
 
     @Override
     public List<Roles> findAll() {
@@ -186,18 +160,17 @@ public class UsersServiceImpl implements UsersService {
 
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
-        Users user = usersRepository.findByUserNameOrCode(username);
+    public UserDetails loadUserByUsername(String userCode) {
+        Users user = usersRepository.findByCodeAndStatusAndDeleted(userCode, Constants.STATUS_ACTIVE, Constants.DONT_DELETE);
         if (user == null) {
-            throw new UsernameNotFoundException("Can not found username: " + username);
+            throw new MessageDescriptorFormatException("Can not found username: " + userCode);
         }
         return new CustomUserDetails(user);
     }
 
-
     @Override
     public Users findByUserCode(String userCode) {
-        return usersRepository.findByUserCodeAndStatus(userCode);
+        return usersRepository.findByCodeAndStatusAndDeleted(userCode , Constants.STATUS_ACTIVE, Constants.DONT_DELETE);
     }
 
     @Override
@@ -211,38 +184,14 @@ public class UsersServiceImpl implements UsersService {
         usersRepository.save(user);
     }
 
-
     @Override
-    public ResponseEntity<Object> updateInfo(UsersDTO usersDTO, Long id) {
-        Optional<Users> usersOptional = usersRepository.findById(id);
+    public Users getDetail(Long id) {
+        Optional<Users> usersOptional = usersRepository.findByIdAndDeletedAndStatus(id, Constants.DONT_DELETE, Constants.STATUS_ACTIVE);
         if (usersOptional.isEmpty()) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Nhân viên không tồn tại"));
+            throw new MessageDescriptorFormatException(" User id can not found!");
         }
-        Users user = usersOptional.get();
-
-        user.setName(usersDTO.getName());
-        user.setUpdateTime(new Date());
-        user.setPhone(usersDTO.getPhone());
-        user.setDateOfBirth(usersDTO.getDateOfBirth());
-        user.setEmail(usersDTO.getEmail());
-        user.setNote(usersDTO.getNote());
-        usersRepository.save(user);
-        return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", usersOptional.get(), 1L));
+        return usersRepository.findAllById(id);
     }
-
-    @Override
-    public ResponseEntity<Object> updatePassWord(UsersDTO usersDTO, String email) {
-        Optional<Users> usersOptional = usersRepository.findAllByEmail(email);
-        if (usersOptional.isEmpty()) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Email không tồn tại"));
-        }
-        Users users = usersOptional.get();
-
-        users.setPassword(passwordEncoder().encode(usersDTO.getPassword()));
-        usersRepository.save(users);
-        return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", usersOptional.get(), 1L));
-    }
-
 
     private void validRequest(UsersDTO usersDTO) {
         if (usersDTO == null) {

@@ -1,6 +1,11 @@
 server:
   port: 9000
 
+
+jwt:
+  header: Authorization
+  secret: my-very-secret-key
+
 spring:
   application:
     name: api-gateway
@@ -12,15 +17,20 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/user/**
+            - Path=/users/**
+          filters:
+            - AuthFilter
         - id: booke-service
           uri: lb://book-service
           predicates:
             - Path=/book/**
-#        - id: borrow-service
-#            uri: lb://borrow-service
-#            predicates:
-#              - Path=/borrow/**
+          filters:
+            - AuthFilter
+      #        - id: borrow-service
+      #            uri: lb://borrow-service
+      #            predicates:
+      #              - Path=/borrow/**
+
 
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE

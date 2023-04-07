@@ -1,5 +1,6 @@
 package com.example.bookeservice.service.impl;
 
+
 import com.example.bookeservice.dto.BookDTO;
 import com.example.bookeservice.entity.Book;
 import com.example.bookeservice.repository.BookRepository;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +25,14 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
 
+    @Transactional
     @Override
     public Book createBook(BookDTO bookDTO) {
 
+        Optional<Book> bookOptional = bookRepository.findByCodeAndDeleted(bookDTO.getCode(), Constants.DONT_DELETE);
+        if (bookOptional.isPresent()) {
+            throw new MessageDescriptorFormatException("Mã sách đã tồn tại");
+        }
         Book book = new Book();
         BeanUtils.copyProperties(bookDTO, book);
         book.setCreatTime(new Date());
@@ -36,11 +43,17 @@ public class BookServiceImpl implements BookService {
         return book;
     }
 
+    @Transactional
     @Override
     public Book updateBook(BookDTO bookDTO, Long id) {
         Optional<Book> bookOptional = bookRepository.findById(id);
         if (bookOptional.isEmpty()) {
             throw new MessageDescriptorFormatException("Sách không tồn tại");
+        }
+
+        Optional<Book> optionalBook = bookRepository.findByCodeAndDeleted(bookDTO.getCode(), Constants.DONT_DELETE);
+        if (optionalBook.isPresent()) {
+            throw new MessageDescriptorFormatException("Mã sách đã tồn tại");
         }
 
         Book book = bookOptional.get();
@@ -52,6 +65,7 @@ public class BookServiceImpl implements BookService {
         return book;
     }
 
+    @Transactional
     @Override
     public void deleteBook(List<Long> id) {
         List<Book> bookList = bookRepository.findByIdInAndDeleted(id, Constants.DONT_DELETE);
@@ -67,7 +81,6 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> getAllBook() {
-
         return bookRepository.findAll();
     }
 
@@ -79,6 +92,4 @@ public class BookServiceImpl implements BookService {
         }
         return bookRepository.findAllById(id);
     }
-
-
 }

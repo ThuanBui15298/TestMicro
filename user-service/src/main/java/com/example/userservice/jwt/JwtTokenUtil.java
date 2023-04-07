@@ -10,6 +10,7 @@ import java.util.Date;
 @Component
 @Slf4j
 public class JwtTokenUtil {
+
     private final static String JWT_SECRET = "secret";
 
     public String generateToken(CustomUserDetails customUserDetails) {

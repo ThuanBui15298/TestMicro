@@ -1,18 +1,19 @@
-package com.example.bookeservice.entity;
+package com.example.userservice.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 @Entity
-@Setter
-@Getter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "book")
-public class Book extends PersistableEntity {
+@Table(name = "position")
+public class Position extends  PersistableEntity{
 
     @Id
     @Column(name = "id")
@@ -28,11 +29,5 @@ public class Book extends PersistableEntity {
     private  String code;
 
     @Size(min = 2, max = 500, message = "Name must be between 2 and 500 characters long")
-    private String content;
-
-    private  Integer quality;
-
-    private String author;
-
-    private Long userId;
+    private String note;
 }

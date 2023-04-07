@@ -15,15 +15,13 @@ import java.util.Map;
 
 public interface UsersService extends UserDetailsService {
 
-    ResponseEntity<Object> createUsers(UsersDTO usersDTO) throws BusinessException;
+    Users createUsers(UsersDTO usersDTO) throws BusinessException;
 
     ResponseEntity<Object> updateUsers(UsersDTO usersDTO, Long id);
 
     Users deleteUsers(List<Long> id);
 
     Page<Map<String, Object>> searchUsers (Pageable pageable,  String search , Integer status);
-
-    Users resetPassWord( Long id);
 
     CustomUserDetails loadUserByUserCode(String code);
 
@@ -35,9 +33,6 @@ public interface UsersService extends UserDetailsService {
 
     List<Roles> findAll();
 
-
-    ResponseEntity<Object> updateInfo(UsersDTO usersDTO, Long id);
-
-    ResponseEntity<Object> updatePassWord(UsersDTO usersDTO, String email);
+    Users getDetail(Long id);
 
 }

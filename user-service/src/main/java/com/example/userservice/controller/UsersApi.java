@@ -1,8 +1,8 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.UsersDTO;
-import com.example.userservice.response.BusinessException;
 import com.example.userservice.response.Response;
+import com.example.userservice.response.ResponseData;
 import com.example.userservice.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
+import static com.example.userservice.response.ResponseDataStatus.ERROR;
+import static com.example.userservice.response.ResponseDataStatus.SUCCESS;
 
 @RestController
 @RequestMapping("users")
@@ -28,8 +34,37 @@ public class UsersApi {
     @Operation(summary = "Create",
             description = "Create users",
             tags = {"Users"})
-    public ResponseEntity<Object> createUsers(@RequestBody UsersDTO usersDTO) throws BusinessException {
-        return usersService.createUsers(usersDTO);
+    public ResponseEntity<?> createUsers(@RequestBody UsersDTO usersDTO) {
+        try {
+            var user = usersService.createUsers(usersDTO);
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(SUCCESS.name())
+                    .message("Create successful")
+                    .data(user).build(), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(ERROR.name())
+                    .message(e.getMessage()).build(), BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/update/{id}")
+    @Operation(summary = "Update",
+            description = "Update Users",
+            tags = {"Users"})
+    public ResponseEntity<?> updateBook(@RequestBody UsersDTO usersDTO,
+                                        @PathVariable("id") Long id) {
+        try {
+            var users = usersService.updateUsers(usersDTO, id);
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(SUCCESS.name())
+                    .message("Update successful")
+                    .data(users).build(), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(ERROR.name())
+                    .message(e.getMessage()).build(), BAD_REQUEST);
+        }
     }
 
     @PostMapping("/delete/{id}")
@@ -40,14 +75,14 @@ public class UsersApi {
         return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "Delete successful!", usersService.deleteUsers(id), 1L));
     }
 
-    @GetMapping("/get-all")
+    @GetMapping
     @Operation(summary = "Get all users",
             description = "Search by condition: name, code",
             tags = {"Users"})
     public ResponseEntity<?> searchUsers(@RequestParam(defaultValue = "0") Integer pageNo,
                                          @RequestParam(defaultValue = "10") Integer pageSize,
                                          @RequestParam(defaultValue = "id") String sortBy,
-                                         @RequestParam Integer status,
+                                         @RequestParam(name = "status", required = false, defaultValue = "-1") Integer status,
                                          @RequestParam(name = "sortType", required = false, defaultValue = "desc") String sortType,
                                          @RequestParam String search) {
 
@@ -64,14 +99,22 @@ public class UsersApi {
         return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", content, total));
     }
 
-    @PostMapping("/reset-users/{id}")
-    @Operation(summary = "Reset",
-            description = "Rest users",
-            tags = {"Users"})
-    public ResponseEntity<?> resetPassWord(@PathVariable("id") Long id) {
-        return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "RestPassWord successful!", usersService.resetPassWord(id), 1L));
+    @GetMapping("/detail")
+    @Operation(summary = "Get",
+            description = "Get User",
+            tags = {"User"})
+    public ResponseEntity<?> getDetail(@RequestParam Long id) {
+        try {
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(SUCCESS.name())
+                    .message("Get Detail successful")
+                    .data(usersService.getDetail(id)).build(), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(ERROR.name())
+                    .message(e.getMessage()).build(), BAD_REQUEST);
+        }
     }
-
 
     @GetMapping("/get-all-roles")
     @Operation(summary = "Get all roles",
@@ -81,26 +124,6 @@ public class UsersApi {
         var users = usersService.findAll();
         return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", users, 1L));
     }
-
-    @PostMapping("/update-info/{id}")
-    @Operation(summary = "Update",
-            description = "Update users",
-            tags = {"Users"})
-    public ResponseEntity<Object> updateInfo(@RequestBody UsersDTO usersDTO,
-                                             @PathVariable("id") Long id) {
-        return usersService.updateInfo(usersDTO, id);
-    }
-
-    @PostMapping("/update-password/{email}")
-    @Operation(summary = "Update",
-            description = "Update users",
-            tags = {"Users"})
-    public ResponseEntity<?> updatePassWord(@RequestBody UsersDTO usersDTO,
-                                @PathVariable("email") String email) {
-        var users = usersService.updatePassWord(usersDTO, email);
-        return users;
-    }
-
 }
 
 

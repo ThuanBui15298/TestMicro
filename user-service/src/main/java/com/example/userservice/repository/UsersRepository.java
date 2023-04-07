@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,16 +26,13 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
 
     List<Users> findAllByIdInAndDeleted(List<Long> id, Integer deleted);
 
-    @Query(value = "select u from Users u where u.deleted = 1 and u.code =: userName or u.username = :userName")
-    Users findByUserNameOrCode(@Param("userName") String userName);
+    Users findByCodeAndStatusAndDeleted(String userCode, Integer status, Integer deleted);
 
-    @Query(value = " select * from users u " +
-            " WHERE u.deleted = 1 ", nativeQuery = true)
-    Page<Map<String, Object>> findAllByUsers(Pageable pageable);
+    Optional<Users> findByIdAndDeletedAndStatus(Long id, Integer status, Integer deleted);
 
+    Users findAllById(Long id);
 
     CustomUserDetails findByCode(String code);
-
 
     @Query(value = "                select u.name , u.id, u.code, u.phone, u.email, u.date_of_birth, u.status , u.note                                                   \n" +
             "                         from users u      WHERE u.deleted = 1 and (u.status in (:status) or -1 in (:status))                                              \n" +
@@ -50,15 +47,9 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
 
     Users findByEmail(String email);
 
-    Optional<Users> findAllByEmail(String email);
-
-    @Query("select u from Users u where u.status = 1 and u.code = :userCode")
-    Users findByUserCodeAndStatus(@Param("userCode") String userCode);
-
-
-//    @Transactional
-//    @Modifying
-//    @Query(value = "insert into roles_users(users_id, roles_id) values(:user_id , :roles_id)", nativeQuery = true)
-//    void insert(Long user_id, Long roles_id);
+    @Modifying
+    @Transactional
+    @Query(value = "insert into roles_users(users_id, roles_id) values(:user_id ,:roles_id)", nativeQuery = true)
+    void insert(Long user_id, Long roles_id);
 
 }

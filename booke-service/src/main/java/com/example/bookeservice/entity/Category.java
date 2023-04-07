@@ -1,6 +1,9 @@
 package com.example.bookeservice.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -11,9 +14,8 @@ import javax.validation.constraints.Size;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "book")
-public class Book extends PersistableEntity {
-
+@Table(name = "Category")
+public class Category extends  PersistableEntity {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,13 +28,4 @@ public class Book extends PersistableEntity {
     @NotEmpty(message = "Name may not be empty")
     @Size(min = 2, max = 20, message = "Name must be between 2 and 255 characters long")
     private  String code;
-
-    @Size(min = 2, max = 500, message = "Name must be between 2 and 500 characters long")
-    private String content;
-
-    private  Integer quality;
-
-    private String author;
-
-    private Long userId;
 }
