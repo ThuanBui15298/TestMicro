@@ -17,7 +17,7 @@ public interface UsersService extends UserDetailsService {
 
     Users createUsers(UsersDTO usersDTO) throws BusinessException;
 
-    ResponseEntity<Object> updateUsers(UsersDTO usersDTO, Long id);
+    Users updateUsers(UsersDTO usersDTO, Long id);
 
     Users deleteUsers(List<Long> id);
 
@@ -34,5 +34,7 @@ public interface UsersService extends UserDetailsService {
     List<Roles> findAll();
 
     Users getDetail(Long id);
+
+    void remove(Long id);
 
 }

@@ -2,19 +2,19 @@ package com.example.userservice.service.impl;
 
 import com.example.userservice.config.CustomUserDetails;
 import com.example.userservice.dto.UsersDTO;
+import com.example.userservice.entity.Position;
 import com.example.userservice.entity.Roles;
 import com.example.userservice.entity.Users;
+import com.example.userservice.repository.PositionRepository;
 import com.example.userservice.repository.RolesRepository;
 import com.example.userservice.repository.UsersRepository;
-import com.example.userservice.response.Response;
 import com.example.userservice.service.UsersService;
 import com.example.userservice.utils.Constants;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.internal.engine.messageinterpolation.parser.MessageDescriptorFormatException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +32,8 @@ public class UsersServiceImpl implements UsersService {
 
     private final RolesRepository roleRepository;
 
+    private final PositionRepository positionRepository;
+
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -43,53 +45,51 @@ public class UsersServiceImpl implements UsersService {
         validRequest(usersDTO);
         Optional<Users> usersOptional = usersRepository.findByCodeAndDeleted(usersDTO.getCode(), Constants.DONT_DELETE);
         if (usersOptional.isPresent() || usersDTO.getCode().length() == 0) {
-            throw  new MessageDescriptorFormatException("Mã người dùng đã tồn tại");
+            throw new MessageDescriptorFormatException("Mã người dùng đã tồn tại");
         }
 
         Optional<Users> usersOpt = usersRepository.findByEmailAndDeleted(usersDTO.getEmail(), Constants.DONT_DELETE);
         if (usersOpt.isPresent() || usersDTO.getEmail().length() == 0) {
-            throw  new MessageDescriptorFormatException("Email người dùng đã tồn tại");
+            throw new MessageDescriptorFormatException("Email người dùng đã tồn tại");
         }
 
         Optional<Users> OptUsers = usersRepository.findByPhoneAndDeleted(usersDTO.getPhone(), Constants.DONT_DELETE);
         if (OptUsers.isPresent() || usersDTO.getPhone().length() == 0) {
-            throw  new MessageDescriptorFormatException("Số điện thoại người dùng đã tồn tại");
+            throw new MessageDescriptorFormatException("Số điện thoại người dùng đã tồn tại");
         }
 
-        if (usersDTO.getCode().length() < 5) {
-            throw  new MessageDescriptorFormatException("Số kí tự phải lớn hơn 5");
+        Optional<Position> positionOptional = positionRepository.findByIdAndDeletedAndStatus(usersDTO.getPositionId(), Constants.DONT_DELETE, Constants.STATUS_ACTIVE);
+        if (positionOptional.isEmpty()) {
+            throw new MessageDescriptorFormatException("Chức vụ không tồn tại");
         }
+
         Users users = new Users();
-        users.setName(usersDTO.getName());
-        users.setCode(usersDTO.getCode());
-        users.setNote(usersDTO.getNote());
+        BeanUtils.copyProperties(usersDTO,users);
         users.setUpdateTime(new Date());
         users.setCreatTime(new Date());
         users.setStatus(usersDTO.getStatus());
         users.setDeleted(Constants.DONT_DELETE);
-        users.setPhone(usersDTO.getPhone());
         users.setPassword(passwordEncoder().encode(Constants.PASSWORD));
-        users.setDateOfBirth(usersDTO.getDateOfBirth());
-        users.setEmail(usersDTO.getEmail());
         usersRepository.save(users);
 
         for (int i = 0; i < usersDTO.getRolesId().size(); i++) {
-            usersRepository.insert( users.getId(), usersDTO.getRolesId().get(i));
+            usersRepository.insert(users.getId(), usersDTO.getRolesId().get(i));
         }
         return users;
     }
 
     @Transactional
     @Override
-    public ResponseEntity<Object> updateUsers(UsersDTO usersDTO, Long id) {
+    public Users updateUsers(UsersDTO usersDTO, Long id) {
         validRequest(usersDTO);
         Optional<Users> usersOptional = usersRepository.findById(id);
         if (usersOptional.isEmpty()) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Nhân viên không tồn tại"));
+            throw new MessageDescriptorFormatException("Nhân viên không tồn tại");
         }
 
-        if (usersDTO.getCode().length() < 5) {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "số kí tự nhập vào phải lớn hơn 5"));
+        Optional<Position> positionOptional = positionRepository.findByIdAndDeletedAndStatus(usersDTO.getPositionId(), Constants.DONT_DELETE, Constants.STATUS_ACTIVE);
+        if (positionOptional.isEmpty()) {
+            throw new MessageDescriptorFormatException("Chức vụ không tồn tại");
         }
 
         Users user = usersOptional.get();
@@ -100,32 +100,27 @@ public class UsersServiceImpl implements UsersService {
             if (usersOpt.isEmpty() || user.getId().equals(usersOpt.get().getId())) {
                 Optional<Users> OptUsers = usersRepository.findByPhoneAndDeleted(usersDTO.getPhone(), Constants.DONT_DELETE);
                 if (OptUsers.isEmpty() || user.getId().equals(OptUsers.get().getId())) {
-                    user.setName(usersDTO.getName());
-                    user.setCode(usersDTO.getCode());
-                    user.setNote(usersDTO.getNote());
+                    BeanUtils.copyProperties(usersDTO,user);
                     user.setUpdateTime(new Date());
                     user.setCreatTime(new Date());
                     user.setStatus(usersDTO.getStatus());
                     user.setDeleted(Constants.DONT_DELETE);
-                    user.setPhone(usersDTO.getPhone());
                     user.setPassword(passwordEncoder().encode(Constants.PASSWORD));
-                    user.setDateOfBirth(usersDTO.getDateOfBirth());
-                    user.setEmail(usersDTO.getEmail());
                     usersRepository.save(user);
 
                     for (int i = 0; i < usersDTO.getRolesId().size(); i++) {
-                        usersRepository.insert( user.getId(), usersDTO.getRolesId().get(i));
+                        usersRepository.insert(user.getId(), usersDTO.getRolesId().get(i));
                     }
                 } else {
-                    return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Số điện thoại người dùng đã tồn tại"));
+                    throw new MessageDescriptorFormatException("Số điện thoại người dùng đã tồn tại");
                 }
             } else {
-                return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Email người dùng đã tồn tại"));
+                throw new MessageDescriptorFormatException("Email người dùng đã tồn tại");
             }
         } else {
-            return ResponseEntity.ok().body(new Response<>(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Mã nhân viên đã tồn tại"));
+            throw new MessageDescriptorFormatException("Mã nhân viên đã tồn tại");
         }
-        return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", usersOptional.get(), 1L));
+        return user;
     }
 
     @Transactional
@@ -145,7 +140,7 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public Page<Map<String, Object>> searchUsers(Pageable pageable, String search, Integer status) {
-            return usersRepository.findAllBySearch(pageable, search, status);
+        return usersRepository.findAllBySearch(pageable, search, status);
     }
 
     @Override
@@ -158,7 +153,6 @@ public class UsersServiceImpl implements UsersService {
         return roleRepository.findAll();
     }
 
-
     @Override
     public UserDetails loadUserByUsername(String userCode) {
         Users user = usersRepository.findByCodeAndStatusAndDeleted(userCode, Constants.STATUS_ACTIVE, Constants.DONT_DELETE);
@@ -170,7 +164,7 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public Users findByUserCode(String userCode) {
-        return usersRepository.findByCodeAndStatusAndDeleted(userCode , Constants.STATUS_ACTIVE, Constants.DONT_DELETE);
+        return usersRepository.findByCodeAndStatusAndDeleted(userCode, Constants.STATUS_ACTIVE, Constants.DONT_DELETE);
     }
 
     @Override
@@ -191,6 +185,10 @@ public class UsersServiceImpl implements UsersService {
             throw new MessageDescriptorFormatException(" User id can not found!");
         }
         return usersRepository.findAllById(id);
+    }
+    @Override
+    public void remove(Long id) {
+        usersRepository.deleteByUserId(id);
     }
 
     private void validRequest(UsersDTO usersDTO) {
@@ -213,7 +211,5 @@ public class UsersServiceImpl implements UsersService {
         if (usersDTO.getCode() == null) {
             throw new MessageDescriptorFormatException("Users-Code-null");
         }
-
     }
-
 }

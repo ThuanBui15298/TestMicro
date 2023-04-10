@@ -1,9 +1,10 @@
 package com.example.bookeservice.service.impl;
 
-
 import com.example.bookeservice.dto.BookDTO;
 import com.example.bookeservice.entity.Book;
+import com.example.bookeservice.entity.Category;
 import com.example.bookeservice.repository.BookRepository;
+import com.example.bookeservice.repository.CategoryRepository;
 import com.example.bookeservice.service.BookService;
 import com.example.bookeservice.utils.Constants;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,10 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
 
+    private final CategoryRepository categoryRepository;
+
+//    private final AuthClients authClients;
+
     @Transactional
     @Override
     public Book createBook(BookDTO bookDTO) {
@@ -32,6 +37,11 @@ public class BookServiceImpl implements BookService {
         Optional<Book> bookOptional = bookRepository.findByCodeAndDeleted(bookDTO.getCode(), Constants.DONT_DELETE);
         if (bookOptional.isPresent()) {
             throw new MessageDescriptorFormatException("Mã sách đã tồn tại");
+        }
+
+        Optional<Category> categoryOptional = categoryRepository.findByIdAndDeletedAndStatus(bookDTO.getCategoryId(), Constants.DONT_DELETE, Constants.STATUS_ACTIVE);
+        if (categoryOptional.isEmpty()) {
+            throw new MessageDescriptorFormatException("Danh mục không tồn tại");
         }
         Book book = new Book();
         BeanUtils.copyProperties(bookDTO, book);
@@ -51,17 +61,23 @@ public class BookServiceImpl implements BookService {
             throw new MessageDescriptorFormatException("Sách không tồn tại");
         }
 
-        Optional<Book> optionalBook = bookRepository.findByCodeAndDeleted(bookDTO.getCode(), Constants.DONT_DELETE);
-        if (optionalBook.isPresent()) {
-            throw new MessageDescriptorFormatException("Mã sách đã tồn tại");
+        Optional<Category> categoryOptional = categoryRepository.findByIdAndDeletedAndStatus(bookDTO.getCategoryId(), Constants.DONT_DELETE, Constants.STATUS_ACTIVE);
+        if (categoryOptional.isEmpty()) {
+            throw new MessageDescriptorFormatException("Danh mục không tồn tại");
         }
 
         Book book = bookOptional.get();
-        BeanUtils.copyProperties(bookDTO, book);
-        book.setDeleted(Constants.DONT_DELETE);
-        book.setStatus(bookDTO.getStatus());
-        book.setUpdateTime(new Date());
-        bookRepository.save(book);
+        Optional<Book> optionalBook = bookRepository.findByCodeAndDeleted(bookDTO.getCode(), Constants.DONT_DELETE);
+        if (optionalBook.isEmpty() || book.getId().equals(optionalBook.get().getId())) {
+
+            BeanUtils.copyProperties(bookDTO, book);
+            book.setDeleted(Constants.DONT_DELETE);
+            book.setStatus(bookDTO.getStatus());
+            book.setUpdateTime(new Date());
+            bookRepository.save(book);
+        } else {
+            throw new MessageDescriptorFormatException("Mã sách đã tồn tại");
+        }
         return book;
     }
 
@@ -92,4 +108,9 @@ public class BookServiceImpl implements BookService {
         }
         return bookRepository.findAllById(id);
     }
+
+//    @Override
+//    public UserDTO mapUser() {
+//        return authClients.getUser();
+//    }
 }

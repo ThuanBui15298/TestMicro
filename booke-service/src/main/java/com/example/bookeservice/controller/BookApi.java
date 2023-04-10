@@ -113,4 +113,23 @@ public class BookApi {
                     .message(e.getMessage()).build(), BAD_REQUEST);
         }
     }
+
+//    @GetMapping
+//    @Operation(summary = "Get",
+//            description = "Get Map",
+//            tags = {"Map"})
+//    public ResponseEntity<?> getMap() {
+//        try {
+//            var useDTO = bookService.mapUser();
+//            return new ResponseEntity<>(ResponseData.builder()
+//                    .status(SUCCESS.name())
+//                    .message("Get All successful")
+//                    .data(useDTO).build(), OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(ResponseData.builder()
+//                    .status(ERROR.name())
+//                    .message(e.getMessage()).build(), BAD_REQUEST);
+//        }
+//    }
+
 }

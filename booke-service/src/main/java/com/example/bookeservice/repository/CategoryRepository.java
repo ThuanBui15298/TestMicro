@@ -13,4 +13,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByIdInAndDeleted(List<Long> id, Integer deleted);
 
     List<Category> findAllById(Long id);
+
+    Optional<Category> findByIdAndDeletedAndStatus(Long id, Integer deleted, Integer status);
 }

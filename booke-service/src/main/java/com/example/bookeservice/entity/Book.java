@@ -35,4 +35,6 @@ public class Book extends PersistableEntity {
     private String author;
 
     private Long userId;
+
+    private  Long categoryId;
 }

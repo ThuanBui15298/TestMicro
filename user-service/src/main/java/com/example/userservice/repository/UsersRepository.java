@@ -52,4 +52,10 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
     @Query(value = "insert into roles_users(users_id, roles_id) values(:user_id ,:roles_id)", nativeQuery = true)
     void insert(Long user_id, Long roles_id);
 
+
+    @org.springframework.transaction.annotation.Transactional
+    @Modifying
+    @Query(value = "  DELETE FROM roles_users ru WHERE ru.users_id = :id ", nativeQuery = true)
+    void deleteByUserId(@Param("id") Long id);
+
 }

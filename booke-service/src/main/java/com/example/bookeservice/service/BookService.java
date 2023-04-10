@@ -18,4 +18,6 @@ public interface BookService {
 
     Book getDetail(Long id);
 
+//    UserDTO mapUser();
+
 }

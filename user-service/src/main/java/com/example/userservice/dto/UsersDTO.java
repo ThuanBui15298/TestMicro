@@ -37,6 +37,6 @@ public class UsersDTO {
 
     private Integer status;
 
-    private String password;
+    private Long positionId;
 
 }

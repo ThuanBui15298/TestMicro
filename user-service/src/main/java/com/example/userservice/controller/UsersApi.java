@@ -55,6 +55,7 @@ public class UsersApi {
     public ResponseEntity<?> updateBook(@RequestBody UsersDTO usersDTO,
                                         @PathVariable("id") Long id) {
         try {
+            usersService.remove(id);
             var users = usersService.updateUsers(usersDTO, id);
             return new ResponseEntity<>(ResponseData.builder()
                     .status(SUCCESS.name())
