@@ -34,16 +34,9 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
 
     CustomUserDetails findByCode(String code);
 
-    @Query(value = "                select u.name , u.id, u.code, u.phone, u.email, u.date_of_birth, u.status , u.note                                                   \n" +
-            "                         from users u      WHERE u.deleted = 1 and (u.status in (:status) or -1 in (:status))                                              \n" +
-            "                          AND lower(concat(coalesce(u.name ,''), coalesce(u.code ,'')))     " +
-            "                           like lower(concat('%', :search, '%'))    ", countQuery = "                             select u.name , u.id, u.code, u.phone, u.email, u.date_of_birth, u.status , u.note                                                   \n" +
-            "                             from users u      WHERE u.deleted = 1 and (u.status in (:status) or -1 in (:status))                                              \n" +
-            "                               AND lower(concat(coalesce(u.name ,''), coalesce(u.code ,'')))      " +
-            "                            like lower(concat('%', :search, '%'))  ", nativeQuery = true)
-    Page<Map<String, Object>> findAllBySearch(Pageable pageable,
-                                              @Param("search") String search,
-                                              @Param("status") Integer status);
+//    @Query(value = "                select u.name , u.id, u.code, u.phone, u.email, u.date_of_birth, u.status , u.note   " +
+//            "                       from users u      WHERE u.deleted = 1  ", nativeQuery = true)
+//    Page<Map<String, Object>> findAllBySearch(Pageable pageable);
 
     Users findByEmail(String email);
 

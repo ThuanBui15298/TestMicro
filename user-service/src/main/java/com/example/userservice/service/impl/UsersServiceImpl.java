@@ -139,8 +139,8 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public Page<Map<String, Object>> searchUsers(Pageable pageable, String search, Integer status) {
-        return usersRepository.findAllBySearch(pageable, search, status);
+    public List<Users>  searchUsers() {
+        return usersRepository.findAll();
     }
 
     @Override

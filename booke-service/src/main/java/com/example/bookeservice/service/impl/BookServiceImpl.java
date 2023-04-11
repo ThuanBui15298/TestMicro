@@ -1,18 +1,20 @@
 package com.example.bookeservice.service.impl;
 
+import com.example.bookeservice.clients.AuthClients;
 import com.example.bookeservice.dto.BookDTO;
+import com.example.bookeservice.dto.UserDTO;
 import com.example.bookeservice.entity.Book;
 import com.example.bookeservice.entity.Category;
 import com.example.bookeservice.repository.BookRepository;
 import com.example.bookeservice.repository.CategoryRepository;
 import com.example.bookeservice.service.BookService;
 import com.example.bookeservice.utils.Constants;
-import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.internal.engine.messageinterpolation.parser.MessageDescriptorFormatException;
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 
 import javax.transaction.Transactional;
 import java.util.Date;
@@ -20,15 +22,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-@Configuration
 public class BookServiceImpl implements BookService {
 
-    private final BookRepository bookRepository;
+    private  BookRepository bookRepository;
 
-    private final CategoryRepository categoryRepository;
+    private  CategoryRepository categoryRepository;
 
-//    private final AuthClients authClients;
+    @Autowired(required = false)
+    private  AuthClients authClients;
 
     @Transactional
     @Override
@@ -97,6 +98,23 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> getAllBook() {
+
+//        Sort sortable = null;
+//        if (sortType.equals("asc")) {
+//            sortable = Sort.by(sortBy).ascending();
+//        } else {
+//            sortable = Sort.by(sortBy).descending();
+//        }
+//        Pageable paging = PageRequest.of(pageNo, pageSize, Sort.by(sortBy),sortable);
+//
+//        Page<EmployeeEntity> pagedResult = repository.findAll(paging);
+//
+//        if(pagedResult.hasContent()) {
+//            return pagedResult.getContent();
+//        } else {
+//            return new ArrayList<EmployeeEntity>();
+//        }
+
         return bookRepository.findAll();
     }
 
@@ -109,8 +127,11 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findAllById(id);
     }
 
-//    @Override
-//    public UserDTO mapUser() {
-//        return authClients.getUser();
-//    }
+    @Override
+    public Object mapUser() {
+//        authClients.getUser();
+        RestTemplate rt = new RestTemplate();
+        var result = rt.getForObject("http://localhost:9002/users", UserDTO.class);
+        return result;
+    }
 }

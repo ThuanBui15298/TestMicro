@@ -83,7 +83,12 @@ public class BookApi {
     @Operation(summary = "Get",
             description = "Get Book",
             tags = {"Book"})
-    public ResponseEntity<?> getAllBook() {
+    public ResponseEntity<?> getAllBook(
+//            @RequestParam(defaultValue = "0") Integer pageNo,
+//                                           @RequestParam(defaultValue = "10") Integer pageSize,
+//                                           @RequestParam(defaultValue = "id") String sortBy,
+//                                           @RequestParam(name = "sortType", required = false, defaultValue = "desc") String sortType
+    ) {
         try {
             List<Book> book = bookService.getAllBook();
             return new ResponseEntity<>(ResponseData.builder()
@@ -114,22 +119,21 @@ public class BookApi {
         }
     }
 
-//    @GetMapping
-//    @Operation(summary = "Get",
-//            description = "Get Map",
-//            tags = {"Map"})
-//    public ResponseEntity<?> getMap() {
-//        try {
-//            var useDTO = bookService.mapUser();
-//            return new ResponseEntity<>(ResponseData.builder()
-//                    .status(SUCCESS.name())
-//                    .message("Get All successful")
-//                    .data(useDTO).build(), OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(ResponseData.builder()
-//                    .status(ERROR.name())
-//                    .message(e.getMessage()).build(), BAD_REQUEST);
-//        }
-//    }
+    @GetMapping("/book")
+    @Operation(summary = "Get",
+            description = "Get Map",
+            tags = {"Map"})
+    public ResponseEntity<?> getMap() {
+        try {
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(SUCCESS.name())
+                    .message("Get All successful")
+                    .data(bookService.mapUser()).build(), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(ERROR.name())
+                    .message(e.getMessage()).build(), BAD_REQUEST);
+        }
+    }
 
 }

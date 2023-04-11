@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface AuthClients {
 
     @GetMapping("/users")
-    UserDTO getUser();
+    void getUser();
 
     @GetMapping("users/detail")
     UserDTO getUserById(@RequestParam Long id);
+
 }

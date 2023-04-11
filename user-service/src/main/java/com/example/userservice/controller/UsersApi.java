@@ -1,6 +1,7 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.UsersDTO;
+import com.example.userservice.entity.Users;
 import com.example.userservice.response.Response;
 import com.example.userservice.response.ResponseData;
 import com.example.userservice.service.UsersService;
@@ -76,29 +77,25 @@ public class UsersApi {
         return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "Delete successful!", usersService.deleteUsers(id), 1L));
     }
 
-    @GetMapping
-    @Operation(summary = "Get all users",
-            description = "Search by condition: name, code",
-            tags = {"Users"})
-    public ResponseEntity<?> searchUsers(@RequestParam(defaultValue = "0") Integer pageNo,
-                                         @RequestParam(defaultValue = "10") Integer pageSize,
-                                         @RequestParam(defaultValue = "id") String sortBy,
-                                         @RequestParam(name = "status", required = false, defaultValue = "-1") Integer status,
-                                         @RequestParam(name = "sortType", required = false, defaultValue = "desc") String sortType,
-                                         @RequestParam String search) {
 
-        Sort sortable = null;
-        if (sortType.equals("asc")) {
-            sortable = Sort.by(sortBy).ascending();
-        } else {
-            sortable = Sort.by(sortBy).descending();
+    @GetMapping
+    @Operation(summary = "Get",
+            description = "Get users",
+            tags = {"users"})
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            List<Users> users = usersService.searchUsers();
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(SUCCESS.name())
+                    .message("Get All successful")
+                    .data(users).build(), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ResponseData.builder()
+                    .status(ERROR.name())
+                    .message(e.getMessage()).build(), BAD_REQUEST);
         }
-        Pageable paging = PageRequest.of(pageNo, pageSize, sortable);
-        var data = usersService.searchUsers(paging, search, status);
-        var content = data.getContent();
-        var total = data.getTotalElements();
-        return ResponseEntity.ok().body(new Response<>(HttpStatus.OK.value(), "OK", content, total));
     }
+
 
     @GetMapping("/detail")
     @Operation(summary = "Get",

@@ -21,7 +21,7 @@ public interface UsersService extends UserDetailsService {
 
     Users deleteUsers(List<Long> id);
 
-    Page<Map<String, Object>> searchUsers (Pageable pageable,  String search , Integer status);
+    List<Users> searchUsers ();
 
     CustomUserDetails loadUserByUserCode(String code);
 
